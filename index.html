@@ -6,7 +6,7 @@
   <title>NYC DOHMH Publication Archive</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body> 
 
 <header>
   <h1>Publication Archive</h1>
@@ -21,32 +21,51 @@
 
     <form id="filters">
 
-      <label>
-        Search
-        <input type="search" id="search-input" />
-      </label>
-
-      <label>
-        Year
-        <select id="year-filter">
-          <option value="">All Years</option>
-        </select>
-      </label>
-
-      <label>
-        Language
-        <select id="language-filter">
-          <option value="">All Languages</option>
-        </select>
-      </label>
-
-    </form>
+        <label>
+          Search
+          <input type="search" id="search-input" />
+        </label>
+      
+        <label>
+          Year
+          <select id="year-filter">
+            <option value="">All Years</option>
+          </select>
+        </label>
+      
+        <label>
+          Language
+          <select id="language-filter">
+            <option value="">All Languages</option>
+          </select>
+        </label>
+      
+        <label>
+            Keyword
+            <input
+              type="search"
+              id="keyword-filter"
+              placeholder="Type a keyword..."
+            />
+          </label>
+      
+        <label>
+          Subject
+          <select id="subject-filter">
+            <option value="">All Subjects</option>
+          </select>
+        </label>
+      
+      </form>
   </section>
 
   <!-- Results -->
   <section aria-labelledby="results-heading">
     <h2 id="results-heading">Results</h2>
     <ul id="results-list"></ul>
+    <nav aria-label="Pagination">
+        <div id="pagination"></div>
+      </nav>
   </section>
 
 </main>

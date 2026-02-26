@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC DOHMH Publication Archive</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header>
+  <h1>Publication Archive</h1>
+  <p id="results-count" aria-live="polite"></p>
+</header>
+
+<main>
+
+  <!-- Filters -->
+  <section aria-labelledby="filters-heading">
+    <h2 id="filters-heading">Filter Publications</h2>
+
+    <form id="filters">
+
+      <label>
+        Search
+        <input type="search" id="search-input" />
+      </label>
+
+      <label>
+        Year
+        <select id="year-filter">
+          <option value="">All Years</option>
+        </select>
+      </label>
+
+      <label>
+        Language
+        <select id="language-filter">
+          <option value="">All Languages</option>
+        </select>
+      </label>
+
+    </form>
+  </section>
+
+  <!-- Results -->
+  <section aria-labelledby="results-heading">
+    <h2 id="results-heading">Results</h2>
+    <ul id="results-list"></ul>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

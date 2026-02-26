@@ -1,0 +1,146 @@
+/* Base Reset */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  background: #f7f9fb;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+/* Layout Container */
+header,
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Header */
+header {
+  padding-top: 3rem;
+  padding-bottom: 1rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+#results-count {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Filter Section */
+#filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+input,
+select {
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #005ea2;
+  box-shadow: 0 0 0 2px rgba(0,94,162,0.15);
+}
+
+/* Results */
+#results-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* Card */
+.result-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Title */
+.result-item h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.result-item a {
+  text-decoration: none;
+  color: #005ea2;
+}
+
+.result-item a:hover {
+  text-decoration: underline;
+}
+
+/* Meta line */
+.result-item p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  background: #eef3f8;
+  color: #004a87;
+  padding: 0.25rem 0.6rem;
+  margin-right: 0.4rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+/* Accessibility: keyboard focus */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #005ea2;
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (min-width: 900px) {
+  #results-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

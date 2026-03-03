@@ -7,6 +7,7 @@ const yearFilter = document.getElementById("year-filter");
 const languageFilter = document.getElementById("language-filter");
 const keywordFilter = document.getElementById("keyword-filter");
 const subjectFilter = document.getElementById("subject-filter");
+const clearBtn = document.getElementById("clear-filters");
 const resultsCount = document.getElementById("results-count");
 const paginationContainer = document.getElementById("pagination");
 
@@ -21,7 +22,14 @@ let currentPage = 1;
 fetch("publications_archive.json")
   .then(res => res.json())
   .then(data => {
-    publications = data || [];
+    publications = (data || []).map(p => ({
+      ...p,
+      topics: Array.isArray(p.topics) ? p.topics : [],
+      keywords: Array.isArray(p.keywords) ? p.keywords : [],
+      languages: Array.isArray(p.languages) ? p.languages : [],
+      translations: Array.isArray(p.translations) ? p.translations : []
+    }));
+
     filtered = publications;
 
     populateFilters();
@@ -39,8 +47,8 @@ function buildSearchIndex(pub) {
     pub.series,
     pub.description,
     pub.type,
-    ...(pub.topics || []),
-    ...(pub.keywords || []),
+    ...pub.topics,
+    ...pub.keywords,
     pub.pdf_metadata?.pdf_subject,
     pub.pdf_metadata?.pdf_keywords
   ]
@@ -51,7 +59,7 @@ function buildSearchIndex(pub) {
 
 
 // --------------------------------------------------
-// FILTER POPULATION (NO KEYWORD DROPDOWN)
+// FILTER POPULATION
 // --------------------------------------------------
 
 function populateFilters() {
@@ -59,25 +67,22 @@ function populateFilters() {
   const years = [...new Set(publications.map(p => p.year).filter(Boolean))]
     .sort((a,b)=>b-a);
 
-  const languages = [...new Set(publications.flatMap(p => p.languages || []))];
+  const languages = [...new Set(publications.flatMap(p => p.languages))];
 
   const subjects = [...new Set(
     publications.map(p => p.pdf_metadata?.pdf_subject).filter(Boolean)
   )].sort();
 
   years.forEach(year => {
-    const opt = new Option(year, year);
-    yearFilter.appendChild(opt);
+    yearFilter.appendChild(new Option(year, year));
   });
 
   languages.forEach(lang => {
-    const opt = new Option(lang.toUpperCase(), lang);
-    languageFilter.appendChild(opt);
+    languageFilter.appendChild(new Option(lang.toUpperCase(), lang));
   });
 
   subjects.forEach(subject => {
-    const opt = new Option(subject, subject);
-    subjectFilter.appendChild(opt);
+    subjectFilter.appendChild(new Option(subject, subject));
   });
 }
 
@@ -99,17 +104,20 @@ function applyFilters() {
     const index = buildSearchIndex(pub);
 
     const matchesSearch =
-      !search || index.includes(search);
+      !search ||
+      search.split(" ").every(token =>
+        index.includes(token)
+      );
 
     const matchesYear =
       !year || String(pub.year) === year;
 
     const matchesLang =
-      !lang || (pub.languages || []).includes(lang);
+      !lang || pub.languages.includes(lang);
 
     const matchesKeyword =
       !keywordQuery ||
-      (pub.keywords || []).some(k =>
+      pub.keywords.some(k =>
         k.toLowerCase().includes(keywordQuery)
       );
 
@@ -139,15 +147,52 @@ function renderPagination(totalPages) {
 
   if (totalPages <= 1) return;
 
-  for (let i = 1; i <= totalPages; i++) {
+  const MAX_VISIBLE = 10;
+
+  // Determine current page group (1–10, 11–20, etc.)
+  const groupStart = Math.floor((currentPage - 1) / MAX_VISIBLE) * MAX_VISIBLE + 1;
+  const groupEnd = Math.min(groupStart + MAX_VISIBLE - 1, totalPages);
+
+  // Helper to create button
+  function createButton(label, page, isActive = false) {
     const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.className = i === currentPage ? "active-page" : "";
+    btn.textContent = label;
+    btn.className = isActive ? "active-page" : "";
+    btn.setAttribute("aria-label", `Go to page ${page}`);
     btn.addEventListener("click", () => {
-      currentPage = i;
+      currentPage = page;
       render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    paginationContainer.appendChild(btn);
+    return btn;
+  }
+
+  // Previous group button
+  if (groupStart > 1) {
+    const prevGroupBtn = createButton("« Prev 10", groupStart - 1);
+    paginationContainer.appendChild(prevGroupBtn);
+  }
+
+  // Page numbers within current group
+  for (let i = groupStart; i <= groupEnd; i++) {
+    paginationContainer.appendChild(
+      createButton(i, i, i === currentPage)
+    );
+  }
+
+  // Ellipsis + jump to last page
+  if (groupEnd < totalPages) {
+
+    const ellipsis = document.createElement("span");
+    ellipsis.textContent = "…";
+    ellipsis.style.padding = "0.6rem 0.75rem";
+    paginationContainer.appendChild(ellipsis);
+
+    const lastBtn = createButton("Last", totalPages);
+    paginationContainer.appendChild(lastBtn);
+
+    const nextGroupBtn = createButton("Next 10 »", groupEnd + 1);
+    paginationContainer.appendChild(nextGroupBtn);
   }
 }
 
@@ -160,35 +205,35 @@ function render() {
 
   resultsList.innerHTML = "";
 
-  const totalPages =
-    Math.ceil(filtered.length / RESULTS_PER_PAGE);
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / RESULTS_PER_PAGE);
 
-  const start =
-    (currentPage - 1) * RESULTS_PER_PAGE;
+  const start = (currentPage - 1) * RESULTS_PER_PAGE;
+  const end = start + RESULTS_PER_PAGE;
 
-  const end =
-    start + RESULTS_PER_PAGE;
+  const pageResults = filtered.slice(start, end);
 
-  const pageResults =
-    filtered.slice(start, end);
+  const startNum = total === 0 ? 0 : start + 1;
+  const endNum = Math.min(end, total);
 
   resultsCount.textContent =
-    `${filtered.length} publication${filtered.length !== 1 ? "s" : ""} found`;
+    total === 0
+      ? "No publications found"
+      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""}`;
 
   pageResults.forEach(pub => {
 
     const li = document.createElement("li");
     li.className = "result-item";
 
-    const primaryUrl =
-      pub.translations?.[0]?.url || "#";
+    const primaryUrl = pub.translations[0]?.url;
+
+    const titleHTML = primaryUrl
+      ? `<a href="${primaryUrl}" target="_blank" rel="noopener">${pub.title}</a>`
+      : pub.title;
 
     li.innerHTML = `
-      <h3>
-        <a href="${primaryUrl}" target="_blank" rel="noopener">
-          ${pub.title}
-        </a>
-      </h3>
+      <h3>${titleHTML}</h3>
 
       <p>
         ${pub.series || ""} 
@@ -199,13 +244,13 @@ function render() {
       ${pub.description ? `<p>${pub.description}</p>` : ""}
 
       <div>
-        ${(pub.topics || []).map(t =>
+        ${pub.topics.map(t =>
           `<span class="badge">${t}</span>`
         ).join("")}
       </div>
 
       <div>
-        ${(pub.languages || []).map(l =>
+        ${pub.languages.map(l =>
           `<span class="badge">${l.toUpperCase()}</span>`
         ).join("")}
       </div>
@@ -219,11 +264,33 @@ function render() {
 
 
 // --------------------------------------------------
+// UTIL
+// --------------------------------------------------
+
+function debounce(fn, delay = 250) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), delay);
+  };
+}
+
+
+// --------------------------------------------------
 // EVENT LISTENERS
 // --------------------------------------------------
 
-searchInput.addEventListener("input", applyFilters);
+searchInput.addEventListener("input", debounce(applyFilters));
+keywordFilter.addEventListener("input", debounce(applyFilters));
 yearFilter.addEventListener("change", applyFilters);
 languageFilter.addEventListener("change", applyFilters);
-keywordFilter.addEventListener("input", applyFilters);
 subjectFilter.addEventListener("change", applyFilters);
+
+clearBtn.addEventListener("click", () => {
+  searchInput.value = "";
+  yearFilter.value = "";
+  languageFilter.value = "";
+  keywordFilter.value = "";
+  subjectFilter.value = "";
+  applyFilters();
+});

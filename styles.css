@@ -1,4 +1,6 @@
-/* Base Reset */
+/* =========================
+   Base Reset
+========================= */
 * {
   box-sizing: border-box;
 }
@@ -11,7 +13,9 @@ body {
   line-height: 1.6;
 }
 
-/* Layout Container */
+/* =========================
+   Layout Container
+========================= */
 header,
 main {
   max-width: 1100px;
@@ -19,7 +23,9 @@ main {
   padding: 2rem;
 }
 
-/* Header */
+/* =========================
+   Header
+========================= */
 header {
   padding-top: 3rem;
   padding-bottom: 1rem;
@@ -35,19 +41,35 @@ h1 {
   font-size: 0.95rem;
 }
 
-/* Filter Section */
+/* =========================
+   Filter Section
+========================= */
+
+#filters-heading {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
 #filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
   margin-bottom: 2.5rem;
   padding: 1.5rem;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  align-items: start;
 }
 
-label {
+/* Search spans full width */
+#filters label:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Prevent grid overflow */
+#filters label {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   font-weight: 600;
@@ -55,24 +77,59 @@ label {
   color: #333;
 }
 
+/* Form Controls */
 input,
-select {
+select,
+button {
   margin-top: 0.4rem;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #d6dbe1;
   border-radius: 6px;
   font-size: 0.95rem;
   background: #fff;
 }
 
+#filters input,
+#filters select {
+  width: 100%;
+  min-width: 0;
+}
+
+input::placeholder {
+  color: #888;
+}
+
+button {
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+}
+
+button:hover {
+  background: #eef3f8;
+}
+
+/* Clear button full width */
+#clear-filters {
+  grid-column: 1 / 1;
+  align-self: start;
+  margin-top: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+/* Focus Styles */
 input:focus,
-select:focus {
+select:focus,
+button:focus {
   outline: none;
   border-color: #005ea2;
   box-shadow: 0 0 0 2px rgba(0,94,162,0.15);
 }
 
-/* Results */
+/* =========================
+   Results Section
+========================= */
+
 #results-list {
   list-style: none;
   padding: 0;
@@ -87,6 +144,7 @@ select:focus {
   border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
+  animation: fadeIn 0.15s ease;
 }
 
 .result-item:hover {
@@ -109,7 +167,7 @@ select:focus {
   text-decoration: underline;
 }
 
-/* Meta line */
+/* Meta */
 .result-item p {
   margin: 0 0 0.75rem 0;
   font-size: 0.9rem;
@@ -129,11 +187,9 @@ select:focus {
   border-radius: 999px;
 }
 
-mark {
-  background: #fff3b0;
-  padding: 0 2px;
-  border-radius: 3px;
-}
+/* =========================
+   Pagination
+========================= */
 
 #pagination {
   margin-top: 2rem;
@@ -142,30 +198,36 @@ mark {
   flex-wrap: wrap;
 }
 
-#pagination button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
 #pagination button.active-page {
   background: #005ea2;
   color: white;
   border-color: #005ea2;
 }
 
-/* Accessibility: keyboard focus */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 3px solid #005ea2;
-  outline-offset: 2px;
+#pagination span {
+  padding: 0.6rem 0.75rem;
+  color: #666;
 }
 
-/* Responsive */
+/* =========================
+   Animation
+========================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 720px) {
+  #filters {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (min-width: 900px) {
   #results-list {
     grid-template-columns: repeat(2, 1fr);

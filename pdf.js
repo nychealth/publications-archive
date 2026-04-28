@@ -229,19 +229,18 @@ function render() {
     const primaryUrl = pub.translations[0]?.url;
 
     const titleHTML = primaryUrl
-      ? `<a href="${primaryUrl}" target="_blank" rel="noopener">${pub.title}</a>`
+      ? `<a href="${primaryUrl}" target="_blank" rel="noopener">${pub.description ? pub.description : pub.title}</a>`
       : pub.title;
 
     li.innerHTML = `
       <h3>${titleHTML}</h3>
+      <p><strong>${pub.series || pub.title}</strong> | ${pub.type ? pub.type : ""} (${pub.year ? pub.year : ""}) </p>
 
       <p>
-        ${pub.series || ""} 
-        ${pub.year ? "• " + pub.year : ""}
-        ${pub.type ? " • " + pub.type : ""}
+              ${pub.description ? `<p>${pub.description}</p>` : ""}
       </p>
 
-      ${pub.description ? `<p>${pub.description}</p>` : ""}
+
 
       <div>
         ${pub.topics.map(t =>

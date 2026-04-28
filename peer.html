@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peer Reviewed Publications Archive</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header>
+  <h1>Peer Reviewed Publications Archive</h1>
+  <p id="results-count" aria-live="polite"></p>
+</header>
+
+<main>
+
+  <!-- Filters -->
+  <section aria-labelledby="filters-heading">
+    <h2 id="filters-heading">Filter Publications</h2>
+
+    <form id="filters">
+
+      <label for="search-input">
+        Search
+        <input type="search" id="search-input" />
+      </label>
+
+      <label for="year-filter">
+        Year
+        <select id="year-filter">
+          <option value="">All Years</option>
+        </select>
+      </label>
+
+      <label for="journal-filter">
+        Journal
+        <select id="journal-filter">
+          <option value="">All Journals</option>
+        </select>
+      </label>
+
+      <label for="keyword-filter">
+        Keyword
+        <input
+          type="search"
+          id="keyword-filter"
+          placeholder="Type a keyword..."
+        />
+      </label>
+
+      <button type="button" id="clear-filters">
+        Clear All
+      </button>
+
+    </form>
+  </section>
+
+  <!-- Results -->
+  <section aria-labelledby="results-heading">
+    <h2 id="results-heading">Results</h2>
+
+    <ul id="results-list"></ul>
+
+    <nav aria-label="Pagination">
+      <div id="pagination"></div>
+    </nav>
+
+  </section>
+
+</main>
+
+<script src="peer.js"></script>
+</body>
+</html>

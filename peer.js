@@ -4,9 +4,8 @@ let filtered = [];
 const resultsList = document.getElementById("results-list");
 const searchInput = document.getElementById("search-input");
 const yearFilter = document.getElementById("year-filter");
-const languageFilter = document.getElementById("language-filter");
+const journalFilter = document.getElementById("journal-filter");
 const keywordFilter = document.getElementById("keyword-filter");
-const subjectFilter = document.getElementById("subject-filter");
 const clearBtn = document.getElementById("clear-filters");
 const resultsCount = document.getElementById("results-count");
 const paginationContainer = document.getElementById("pagination");
@@ -16,18 +15,52 @@ let currentPage = 1;
 
 
 // --------------------------------------------------
-// FETCH
+// FETCH AND PARSE CSV
 // --------------------------------------------------
 
-fetch("publications_archive.json")
-  .then(res => res.json())
-  .then(data => {
-    publications = (data || []).map(p => ({
-      ...p,
-      topics: Array.isArray(p.topics) ? p.topics : [],
-      keywords: Array.isArray(p.keywords) ? p.keywords : [],
-      languages: Array.isArray(p.languages) ? p.languages : [],
-      translations: Array.isArray(p.translations) ? p.translations : []
+function parseCSV(csvText) {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+  const rows = lines.slice(1).map(line => {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.replace(/"/g, '').trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.replace(/"/g, '').trim());
+    return values;
+  });
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((header, i) => {
+      obj[header.toLowerCase()] = row[i] || '';
+    });
+    return obj;
+  });
+}
+
+fetch("peer-thru-2025.csv")
+  .then(res => res.text())
+  .then(csvText => {
+    const data = parseCSV(csvText);
+    publications = data.map(p => ({
+      title: p.title,
+      authors: p.authors,
+      year: parseInt(p.year) || 0,
+      date: p.date,
+      link: p.link,
+      journal: p.journal,
+      doi: p.doi,
+      keywords: p.keywords ? p.keywords.split(';').map(k => k.trim()).filter(k => k) : []
     }));
 
     filtered = publications;
@@ -44,13 +77,9 @@ fetch("publications_archive.json")
 function buildSearchIndex(pub) {
   return [
     pub.title,
-    pub.series,
-    pub.description,
-    pub.type,
-    ...pub.topics,
-    ...pub.keywords,
-    pub.pdf_metadata?.pdf_subject,
-    pub.pdf_metadata?.pdf_keywords
+    pub.authors,
+    pub.journal,
+    ...pub.keywords
   ]
     .filter(Boolean)
     .join(" ")
@@ -67,22 +96,14 @@ function populateFilters() {
   const years = [...new Set(publications.map(p => p.year).filter(Boolean))]
     .sort((a,b)=>b-a);
 
-  const languages = [...new Set(publications.flatMap(p => p.languages))];
-
-  const subjects = [...new Set(
-    publications.map(p => p.pdf_metadata?.pdf_subject).filter(Boolean)
-  )].sort();
+  const journals = [...new Set(publications.map(p => p.journal).filter(Boolean))].sort();
 
   years.forEach(year => {
     yearFilter.appendChild(new Option(year, year));
   });
 
-  languages.forEach(lang => {
-    languageFilter.appendChild(new Option(lang.toUpperCase(), lang));
-  });
-
-  subjects.forEach(subject => {
-    subjectFilter.appendChild(new Option(subject, subject));
+  journals.forEach(journal => {
+    journalFilter.appendChild(new Option(journal, journal));
   });
 }
 
@@ -95,9 +116,8 @@ function applyFilters() {
 
   const search = searchInput.value.toLowerCase().trim();
   const year = yearFilter.value;
-  const lang = languageFilter.value;
+  const journal = journalFilter.value;
   const keywordQuery = keywordFilter.value.toLowerCase().trim();
-  const subject = subjectFilter.value;
 
   filtered = publications.filter(pub => {
 
@@ -112,8 +132,8 @@ function applyFilters() {
     const matchesYear =
       !year || String(pub.year) === year;
 
-    const matchesLang =
-      !lang || pub.languages.includes(lang);
+    const matchesJournal =
+      !journal || pub.journal === journal;
 
     const matchesKeyword =
       !keywordQuery ||
@@ -121,15 +141,11 @@ function applyFilters() {
         k.toLowerCase().includes(keywordQuery)
       );
 
-    const matchesSubject =
-      !subject || pub.pdf_metadata?.pdf_subject === subject;
-
     return (
       matchesSearch &&
       matchesYear &&
-      matchesLang &&
-      matchesKeyword &&
-      matchesSubject
+      matchesJournal &&
+      matchesKeyword
     );
   });
 
@@ -219,39 +235,34 @@ function render() {
   resultsCount.textContent =
     total === 0
       ? "No publications found"
-      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""}`;
+      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""} published since 2020.`;
 
   pageResults.forEach(pub => {
 
     const li = document.createElement("li");
     li.className = "result-item";
 
-    const primaryUrl = pub.translations[0]?.url;
-
-    const titleHTML = primaryUrl
-      ? `<a href="${primaryUrl}" target="_blank" rel="noopener">${pub.title}</a>`
-      : pub.title;
+    let href = pub.link;
+    if (!href) {
+      const encodedTitle = encodeURIComponent(pub.title);
+      href = `https://scholar.google.com/scholar?hl=en&as_sdt=0%2C33&q=${encodedTitle}&btnG=`;
+    }
+    const titleHTML = href ? `<a href="${href}" target="_blank" rel="noopener">${pub.title}</a>` : pub.title;
 
     li.innerHTML = `
       <h3>${titleHTML}</h3>
 
-      <p>
-        ${pub.series || ""} 
-        ${pub.year ? "• " + pub.year : ""}
-        ${pub.type ? " • " + pub.type : ""}
+      <p><strong>${pub.journal ? pub.journal : ""}</strong></p>
+    
+      <p>${pub.authors} 
+        ${pub.year ? pub.year : ""}
       </p>
 
-      ${pub.description ? `<p>${pub.description}</p>` : ""}
+      ${pub.date ? `<p>Published: ${pub.date}</p>` : ""}
 
       <div>
-        ${pub.topics.map(t =>
-          `<span class="badge">${t}</span>`
-        ).join("")}
-      </div>
-
-      <div>
-        ${pub.languages.map(l =>
-          `<span class="badge">${l.toUpperCase()}</span>`
+        ${pub.keywords.map(k =>
+          `<span class="badge">${k}</span>`
         ).join("")}
       </div>
     `;
@@ -283,14 +294,12 @@ function debounce(fn, delay = 250) {
 searchInput.addEventListener("input", debounce(applyFilters));
 keywordFilter.addEventListener("input", debounce(applyFilters));
 yearFilter.addEventListener("change", applyFilters);
-languageFilter.addEventListener("change", applyFilters);
-subjectFilter.addEventListener("change", applyFilters);
+journalFilter.addEventListener("change", applyFilters);
 
 clearBtn.addEventListener("click", () => {
   searchInput.value = "";
   yearFilter.value = "";
-  languageFilter.value = "";
+  journalFilter.value = "";
   keywordFilter.value = "";
-  subjectFilter.value = "";
   applyFilters();
 });

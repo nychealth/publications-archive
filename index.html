@@ -3,80 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NYC DOHMH Publication Archive</title>
+  <title>NYC DOHMH Publications</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .cards {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      width: 300px;
+      text-align: center;
+      transition: box-shadow 0.3s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .card a {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .card a:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
 
 <header>
-  <h1>Publication Archive</h1>
-  <p id="results-count" aria-live="polite"></p>
+  <h1>NYC DOHMH Publications</h1>
+  <p>Access various publication archives from the New York City Department of Health and Mental Hygiene.</p>
 </header>
 
 <main>
-
-  <!-- Filters -->
-  <section aria-labelledby="filters-heading">
-    <h2 id="filters-heading">Filter Publications</h2>
-
-    <form id="filters">
-
-      <label for="search-input">
-        Search
-        <input type="search" id="search-input" />
-      </label>
-
-      <label for="year-filter">
-        Year
-        <select id="year-filter">
-          <option value="">All Years</option>
-        </select>
-      </label>
-
-      <label for="language-filter">
-        Language
-        <select id="language-filter">
-          <option value="">All Languages</option>
-        </select>
-      </label>
-
-      <label for="keyword-filter">
-        Keyword
-        <input
-          type="search"
-          id="keyword-filter"
-          placeholder="Type a keyword..."
-        />
-      </label>
-
-      <label for="subject-filter">
-        Subject
-        <select id="subject-filter">
-          <option value="">All Subjects</option>
-        </select>
-      </label>
-
-      <button type="button" id="clear-filters">
-        Clear All
-      </button>
-
-    </form>
-  </section>
-
-  <!-- Results -->
-  <section aria-labelledby="results-heading">
-    <h2 id="results-heading">Results</h2>
-
-    <ul id="results-list"></ul>
-
-    <nav aria-label="Pagination">
-      <div id="pagination"></div>
-    </nav>
-
-  </section>
-
+  <div class="cards">
+    <div class="card">
+      <h3>Publication Archive</h3>
+      <p>Browse the collection of DOHMH publications and data briefs.</p>
+      <a href="pdf.html">View Archive</a>
+    </div>
+    <div class="card">
+      <h3>Peer Reviewed Publications</h3>
+      <p>Explore peer-reviewed research publications from DOHMH.</p>
+      <a href="peer.html">View Publications</a>
+    </div>
+  </div>
 </main>
 
-<script src="app.js"></script>
 </body>
 </html>

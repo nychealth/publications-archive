@@ -3,8 +3,8 @@ This repository contains an archive of NYC Health Department Publications.
 
 ## Notable files
 It runs off of two important data files:
-- pdf.json is scraped from the subpages of the [Health Department's Publications Page](https://www.nyc.gov/site/doh/data/data-publications/periodic-publications.page), including the Publications Archive.
-- peer.csv (and its variants) is the result of a search of PubMed for manuscripts that include a listed affiliation to the NYC Health Department, dating back to 2010, through 2026.
+- pdf.json is scraped from the subpages of the [Health Department's Publications Page](https://www.nyc.gov/site/doh/data/data-publications/periodic-publications.page), including the Publications Archive. This was scraped March 2026.
+- peer.csv (and its variants) is the result of a search of PubMed for manuscripts that include a listed affiliation to the NYC Health Department, dating back to 2010, through 2026. This was last updated 2026-04-29.
 
 ## Scraper functionality
 The scripts in `/scraper` search for publications with any of these affiliations:
@@ -13,7 +13,7 @@ The scripts in `/scraper` search for publications with any of these affiliations
 - NYC DOHMH
 - NYCDOHMH
 
-`pubmed_search.py` looks for publications from January 1, 2026, to the present. It deduplicates by PMID.
+`pubmed_search.py` looks for publications from January 1, 2026, to the present. It creates `pubmed_results.csv`, appends new entries into `peer.csv`, and deduplicates by PMID.
 
 `pubmed_search_historical.py` looks for publications from a `startyear` to an `endyear`.
 

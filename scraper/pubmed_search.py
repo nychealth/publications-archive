@@ -10,6 +10,11 @@ from datetime import datetime, timedelta
 from Bio import Entrez
 import time
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+PUBMED_RESULTS_PATH = os.path.join(REPO_ROOT, "pubmed_results.csv")
+PEER_CSV_PATH = os.path.join(REPO_ROOT, "peer.csv")
+README_PATH = os.path.join(REPO_ROOT, "README.md")
+
 # Set your email for NCBI (required by Entrez)
 Entrez.email = "mmontesano@health.nyc.gov"  # Change this to your email
 
@@ -167,9 +172,9 @@ def extract_article_info(record):
         print(f"Error extracting article info: {e}")
         return None
 
-def create_csv(articles, filename="pubmed_results.csv"):
+def create_csv(articles, filename=PUBMED_RESULTS_PATH):
     """
-    Create or update a CSV file with the article data, avoiding duplicates
+    Create or update a CSV file with the article data, avoiding duplicates.
     """
     # Define headers
     headers = ['PMID', 'Title', 'Authors', 'Year', 'Date', 'Link', 'Journal', 'DOI', 'Keywords']
@@ -213,6 +218,90 @@ def create_csv(articles, filename="pubmed_results.csv"):
     print(f"Added {len(new_articles)} new articles")
     print(f"Total articles: {len(all_articles)}")
 
+
+def merge_into_peer_csv(pubmed_filename=PUBMED_RESULTS_PATH, peer_filename=PEER_CSV_PATH):
+    """
+    Append the contents of pubmed_results.csv to peer.csv and deduplicate on PMID.
+    """
+    if not os.path.exists(pubmed_filename):
+        print(f"PubMed results file not found: {pubmed_filename}")
+        return
+
+    peer_rows = []
+    peer_fieldnames = []
+    peer_pmids = set()
+
+    if os.path.exists(peer_filename):
+        with open(peer_filename, 'r', newline='', encoding='utf-8') as peerfile:
+            reader = csv.DictReader(peerfile)
+            peer_fieldnames = reader.fieldnames or []
+            for row in reader:
+                peer_rows.append(row)
+                peer_pmids.add(row.get('PMID', ''))
+
+    with open(pubmed_filename, 'r', newline='', encoding='utf-8') as pubfile:
+        reader = csv.DictReader(pubfile)
+        pub_fieldnames = reader.fieldnames or []
+        pub_rows = [row for row in reader if row.get('PMID', '') and row['PMID'] not in peer_pmids]
+
+    if not pub_rows:
+        print(f"No new PubMed entries to add to {peer_filename}.")
+        return
+
+    combined_fieldnames = list(peer_fieldnames) if peer_fieldnames else []
+    for field in pub_fieldnames:
+        if field not in combined_fieldnames:
+            combined_fieldnames.append(field)
+    if not combined_fieldnames:
+        combined_fieldnames = pub_fieldnames
+
+    with open(peer_filename, 'w', newline='', encoding='utf-8') as peerfile:
+        writer = csv.DictWriter(peerfile, fieldnames=combined_fieldnames)
+        writer.writeheader()
+        for row in peer_rows:
+            writer.writerow({k: row.get(k, '') for k in combined_fieldnames})
+        for row in pub_rows:
+            writer.writerow({k: row.get(k, '') for k in combined_fieldnames})
+
+    print(f"Added {len(pub_rows)} new entries to {peer_filename}.")
+    print(f"Updated {peer_filename} total entries: {len(peer_rows) + len(pub_rows)}")
+
+
+def update_readme_timestamp(readme_filename=README_PATH):
+    """
+    Update the README last-updated line with the current date.
+    """
+    if not os.path.exists(readme_filename):
+        print(f"README not found: {readme_filename}")
+        return
+
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    updated_line = f"- peer.csv (and its variants) is the result of a search of PubMed for manuscripts that include a listed affiliation to the NYC Health Department, dating back to 2010, through 2026. This was last updated {current_date}."
+
+    with open(readme_filename, 'r', encoding='utf-8') as readme_file:
+        lines = readme_file.readlines()
+
+    line_updated = False
+    for index, line in enumerate(lines):
+        if line.strip().startswith("- peer.csv (and its variants) is the result of a search of PubMed"):
+            lines[index] = updated_line + "\n"
+            line_updated = True
+            break
+    if not line_updated:
+        for index, line in enumerate(lines):
+            if line.strip().startswith("This was last updated"):
+                lines[index] = f"This was last updated {current_date}.\n"
+                line_updated = True
+                break
+
+    if line_updated:
+        with open(readme_filename, 'w', encoding='utf-8') as readme_file:
+            readme_file.writelines(lines)
+        print(f"Updated README last-updated date to {current_date}.")
+    else:
+        print("Last-updated line not found in README; no change made.")
+
+
 def main():
     """
     Main execution function
@@ -228,12 +317,12 @@ def main():
     
     if not id_list:
         print("No articles found. Checking if CSV needs creation.")
-        if not os.path.exists("pubmed_results.csv"):
+        if not os.path.exists(PUBMED_RESULTS_PATH):
             # Create empty CSV with headers
-            with open("pubmed_results.csv", 'w', newline='', encoding='utf-8') as csvfile:
+            with open(PUBMED_RESULTS_PATH, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['PMID', 'Title', 'Authors', 'Year', 'Date', 'Link', 'Journal', 'DOI', 'Keywords'])
-            print("Created empty CSV file.")
+            print(f"Created empty CSV file: {PUBMED_RESULTS_PATH}")
         else:
             print("CSV file already exists, no changes made.")
         return
@@ -243,7 +332,14 @@ def main():
     articles = fetch_details(id_list)
     
     # Create/update CSV file
-    create_csv(articles, "pubmed_results.csv")
+    create_csv(articles, PUBMED_RESULTS_PATH)
+
+    # Merge PubMed results into peer.csv, deduplicating on PMID
+    merge_into_peer_csv(PUBMED_RESULTS_PATH, PEER_CSV_PATH)
+
+    # Update README timestamp
+    update_readme_timestamp(README_PATH)
+
 
 if __name__ == "__main__":
     main()

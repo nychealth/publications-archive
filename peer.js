@@ -48,7 +48,7 @@ function parseCSV(csvText) {
   });
 }
 
-fetch("peer-2010-2026.csv")
+fetch("peer.csv")
   .then(res => res.text())
   .then(csvText => {
     const data = parseCSV(csvText);

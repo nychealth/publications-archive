@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: true
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,9 +28,6 @@ jobs:
         
     - name: Run PubMed search
       run: python scraper/pubmed_search.py
-      
-    - name: Pull latest changes
-      run: git pull --rebase origin main
       
     - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4

@@ -235,7 +235,7 @@ function render() {
   resultsCount.textContent =
     total === 0
       ? "No publications found"
-      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""} published since 2010.`;
+      : `Showing ${startNum}–${endNum} of ${total} article${total !== 1 ? "s" : ""} published in peer-reviewed journals since 2010.`;
 
   pageResults.forEach(pub => {
 

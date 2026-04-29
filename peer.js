@@ -48,7 +48,7 @@ function parseCSV(csvText) {
   });
 }
 
-fetch("peer-thru-2025.csv")
+fetch("peer-2010-2026.csv")
   .then(res => res.text())
   .then(csvText => {
     const data = parseCSV(csvText);
@@ -235,7 +235,7 @@ function render() {
   resultsCount.textContent =
     total === 0
       ? "No publications found"
-      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""} published since 2020.`;
+      : `Showing ${startNum}–${endNum} of ${total} publication${total !== 1 ? "s" : ""} published since 2010.`;
 
   pageResults.forEach(pub => {
 

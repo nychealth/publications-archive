@@ -26,6 +26,48 @@ main {
 /* =========================
    Header
 ========================= */
+.breadcrumbs {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem 0;
+}
+
+.breadcrumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbs li + li::before {
+  content: "›";
+  margin: 0 0.5rem;
+  color: #999;
+}
+
+.breadcrumbs a {
+  color: #005ea2;
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs [aria-current="page"] {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
 header {
   padding-top: 3rem;
   padding-bottom: 1rem;

@@ -7,19 +7,20 @@
   <link rel="stylesheet" href="styles.css" />
   <style>
     .cards {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 2rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 2rem;
+      width: 100%;
+      max-width: 1100px;
+      margin: 2rem auto 0;
     }
     .card {
       border: 1px solid #ddd;
       border-radius: 8px;
       padding: 1.5rem;
-      width: 300px;
-      text-align: center;
+      text-align: left;
       transition: box-shadow 0.3s;
+      width: 100%;
     }
     .card:hover {
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -39,25 +40,30 @@
     .card a:hover {
       background-color: #0056b3;
     }
+    @media (max-width: 760px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
 
 <header>
   <h1>NYC DOHMH Publications</h1>
-  <p>Access various publication archives from the New York City Department of Health and Mental Hygiene.</p>
+  <p>The Health Department's knowledge library: decades of published data reports and peer-reviewed journal articles.</p>
 </header>
 
 <main>
   <div class="cards">
     <div class="card">
       <h3>Publication Archive</h3>
-      <p>Browse the collection of DOHMH publications and data briefs.</p>
+      <p>An extensive archive of data reports, analyses, and internal Health Department publications.</p>
       <a href="pdf.html">View Archive</a>
     </div>
     <div class="card">
       <h3>Peer Reviewed Publications</h3>
-      <p>Explore peer-reviewed research publications from DOHMH.</p>
+      <p>Manuscripts published in peer-reviewed journals, going back to 2010.</p>
       <a href="peer.html">View Publications</a>
     </div>
   </div>

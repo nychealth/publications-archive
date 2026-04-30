@@ -236,12 +236,6 @@ function render() {
       <h3>${titleHTML}</h3>
       <p><strong>${pub.series || pub.title}</strong> | ${pub.type ? pub.type : ""} (${pub.year ? pub.year : ""}) </p>
 
-      <p>
-              ${pub.description ? `<p>${pub.description}</p>` : ""}
-      </p>
-
-
-
       <div>
         ${pub.topics.map(t =>
           `<span class="badge">${t}</span>`

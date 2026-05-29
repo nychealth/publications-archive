@@ -33,4 +33,6 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Update PubMed search results
-        file_pattern: pubmed_results.csv
+        file_pattern: |
+          pubmed_results.csv
+          peer.csv

@@ -64,6 +64,7 @@ fetch("peer.csv")
     }));
 
     filtered = publications;
+    publications.sort(sortByDateDescending);
 
     populateFilters();
     applyFilters();
@@ -84,6 +85,40 @@ function buildSearchIndex(pub) {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+function parseSortableDate(date) {
+  if (!date) return 0;
+  const trimmed = date.trim();
+
+  // ISO-like dates first
+  const iso = Date.parse(trimmed);
+  if (!Number.isNaN(iso)) {
+    return iso;
+  }
+
+  // Try M/D/YY or M/D/YYYY
+  const mdy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (mdy) {
+    let [_, month, day, year] = mdy;
+    month = Number(month);
+    day = Number(day);
+    year = Number(year);
+    if (year < 100) year += 2000;
+    return Date.UTC(year, month - 1, day);
+  }
+
+  // Fallback: year-only values
+  const yearOnly = trimmed.match(/^(\d{4})$/);
+  if (yearOnly) {
+    return Date.UTC(Number(yearOnly[1]), 0, 1);
+  }
+
+  return 0;
+}
+
+function sortByDateDescending(a, b) {
+  return parseSortableDate(b.date) - parseSortableDate(a.date) || a.title.localeCompare(b.title);
 }
 
 
@@ -149,6 +184,7 @@ function applyFilters() {
     );
   });
 
+  filtered.sort(sortByDateDescending);
   currentPage = 1;
   render();
 }
@@ -165,11 +201,9 @@ function renderPagination(totalPages) {
 
   const MAX_VISIBLE = 10;
 
-  // Determine current page group (1–10, 11–20, etc.)
   const groupStart = Math.floor((currentPage - 1) / MAX_VISIBLE) * MAX_VISIBLE + 1;
   const groupEnd = Math.min(groupStart + MAX_VISIBLE - 1, totalPages);
 
-  // Helper to create button
   function createButton(label, page, isActive = false) {
     const btn = document.createElement("button");
     btn.textContent = label;
@@ -183,22 +217,18 @@ function renderPagination(totalPages) {
     return btn;
   }
 
-  // Previous group button
   if (groupStart > 1) {
     const prevGroupBtn = createButton("« Prev 10", groupStart - 1);
     paginationContainer.appendChild(prevGroupBtn);
   }
 
-  // Page numbers within current group
   for (let i = groupStart; i <= groupEnd; i++) {
     paginationContainer.appendChild(
       createButton(i, i, i === currentPage)
     );
   }
 
-  // Ellipsis + jump to last page
   if (groupEnd < totalPages) {
-
     const ellipsis = document.createElement("span");
     ellipsis.textContent = "…";
     ellipsis.style.padding = "0.6rem 0.75rem";

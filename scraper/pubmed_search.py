@@ -227,6 +227,8 @@ def merge_into_peer_csv(pubmed_filename=PUBMED_RESULTS_PATH, peer_filename=PEER_
         print(f"PubMed results file not found: {pubmed_filename}")
         return
 
+    repair_peer_csv(peer_filename)
+
     peer_rows = []
     peer_fieldnames = []
     peer_pmids = set()
@@ -234,25 +236,37 @@ def merge_into_peer_csv(pubmed_filename=PUBMED_RESULTS_PATH, peer_filename=PEER_
     if os.path.exists(peer_filename):
         with open(peer_filename, 'r', newline='', encoding='utf-8') as peerfile:
             reader = csv.DictReader(peerfile)
-            peer_fieldnames = reader.fieldnames or []
+            if reader.fieldnames:
+                for field in reader.fieldnames:
+                    if field not in peer_fieldnames:
+                        peer_fieldnames.append(field)
             for row in reader:
-                peer_rows.append(row)
-                peer_pmids.add(row.get('PMID', ''))
+                normalized = {k: v for k, v in row.items() if k}
+                pmid = normalized.get('PMID', '').strip()
+                if not pmid:
+                    continue
+                peer_rows.append(normalized)
+                peer_pmids.add(pmid)
 
+    pub_fieldnames = []
     with open(pubmed_filename, 'r', newline='', encoding='utf-8') as pubfile:
         reader = csv.DictReader(pubfile)
-        pub_fieldnames = reader.fieldnames or []
+        if reader.fieldnames:
+            for field in reader.fieldnames:
+                if field not in pub_fieldnames:
+                    pub_fieldnames.append(field)
         pub_rows = [row for row in reader if row.get('PMID', '') and row['PMID'] not in peer_pmids]
 
     if not pub_rows:
         print(f"No new PubMed entries to add to {peer_filename}.")
         return
 
-    combined_fieldnames = list(peer_fieldnames) if peer_fieldnames else []
-    for field in pub_fieldnames:
-        if field not in combined_fieldnames:
-            combined_fieldnames.append(field)
-    if not combined_fieldnames:
+    if peer_fieldnames:
+        combined_fieldnames = peer_fieldnames[:]
+        for field in pub_fieldnames:
+            if field not in combined_fieldnames:
+                combined_fieldnames.append(field)
+    else:
         combined_fieldnames = pub_fieldnames
 
     with open(peer_filename, 'w', newline='', encoding='utf-8') as peerfile:
@@ -265,6 +279,52 @@ def merge_into_peer_csv(pubmed_filename=PUBMED_RESULTS_PATH, peer_filename=PEER_
 
     print(f"Added {len(pub_rows)} new entries to {peer_filename}.")
     print(f"Updated {peer_filename} total entries: {len(peer_rows) + len(pub_rows)}")
+
+
+def repair_peer_csv(peer_filename):
+    if not os.path.exists(peer_filename):
+        return
+
+    with open(peer_filename, 'r', newline='', encoding='utf-8') as peerfile:
+        reader = csv.reader(peerfile)
+        rows = list(reader)
+
+    if not rows:
+        return
+
+    header = [field.replace('\ufeff', '') for field in rows[0]]
+    seen = []
+    for field in header:
+        if field not in seen:
+            seen.append(field)
+
+    cleaned_rows = [seen]
+    seen_pmids = set()
+    for row in rows[1:]:
+        if len(row) > len(seen):
+            if not row[0].strip() and row[-1].strip():
+                row = [row[-1]] + row[1:-1]
+            else:
+                row = row[:len(seen)]
+
+        if len(row) < len(seen):
+            row += [''] * (len(seen) - len(row))
+
+        pmid = row[0].strip()
+        if not pmid:
+            continue
+        if pmid in seen_pmids:
+            continue
+
+        seen_pmids.add(pmid)
+        cleaned_rows.append(row)
+
+    if len(cleaned_rows) == len(rows) and len(seen) == len(header):
+        return
+
+    with open(peer_filename, 'w', newline='', encoding='utf-8') as peerfile:
+        writer = csv.writer(peerfile)
+        writer.writerows(cleaned_rows)
 
 
 def update_readme_timestamp(readme_filename=README_PATH):

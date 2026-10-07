@@ -1,9 +1,12 @@
-name: PubMed Search - NYC DOHMH
+name: PubMed Search and PDF updater
 
 on:
   schedule:
     - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
   workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write  # needed for the auto-commit step
 
 jobs:
   search:
@@ -28,11 +31,16 @@ jobs:
         
     - name: Run PubMed search
       run: python scraper/pubmed_search.py
+
+    - name: Update PDF publications
+      run: python scraper/publications-update.py
+      continue-on-error: true  # a blocked/failed PDF crawl shouldn't stop the PubMed commit
       
     - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: Update PubMed search results
+        commit_message: Update PubMed search results and PDF publications
         file_pattern: |
           pubmed_results.csv
           peer.csv
+          pdf.json

@@ -1,1 +1,4 @@
 biopython==1.83
+beautifulsoup4==4.15.0
+pypdf==6.19.0
+requests==2.32.5
